@@ -150,7 +150,14 @@
 ))
 
 (defun print_usage()
-	(print "test"))
+	(print "usage: sbcl --load game_of_life.lsp [-h] width height
+		   
+		   positional arguments:
+		   width width of the grid
+		   height height of the grid
+		   
+		   optional arguments:
+		   -h, --help show this help message and exit"))
 
 
 (defun create_cells_data(width height)
@@ -158,6 +165,7 @@
   		(setf sizex width))
 	(if (< height sizey)
 		(setf sizey height))
+	
 	(test))	
 
 (defun test_value(width height)
@@ -176,4 +184,4 @@
 	(if (/= (length *posix-argv*) 3)
 		(print_usage)
 		(test_num (elt *posix-argv* 1) (elt *posix-argv* 2)))
-(quit))
+(exit))
