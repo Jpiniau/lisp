@@ -2,11 +2,12 @@
 (sb-int:with-float-traps-masked (:invalid :inexact :overflow)
 
 (defvar lifearray (make-array '(100 100)))
+(defvar pause 0)
 
 (defun init-array (lifearray)
 	(loop for i from 0 to (1- (array-dimension lifearray 0)) do
   		(loop for j from 0 to (1- (array-dimension lifearray 1)) do
-			(setf (aref lifearray i j) (if (= 0 (random 2)) 1 0)))))
+			(setf (aref lifearray i j)  0))))
 
 "
 (defun count-neighborhood (i j lifearray)
@@ -63,10 +64,10 @@
 		      next-lifearray))
 
 (defun main-loop()
-	(when (sdl:mouse-right-p)
-	  (setf (aref lifearray (floor ( / (sdl:mouse-x) 5.0)) (floor ( / (sdl:mouse-y) 5.0))) 1))
-	  ;(print (floor ( / (sdl:mouse-x) 5.0))))
 	(when (sdl:mouse-left-p)
+	  (setf (aref lifearray (floor ( / (sdl:mouse-x) 5.0)) (floor ( / (sdl:mouse-y) 5.0))) 1))
+;	  (print (floor ( / (sdl:mouse-x) 5.0))))
+	(when (sdl:mouse-right-p)
 	  (print "left"))
 
 )
@@ -84,11 +85,28 @@
 			(:key-down-event (:key key)
 				(when (sdl:key= key :sdl-key-escape)
 					(sdl:push-quit-event))
-				(print key))
+				(when (sdl:key= key :sdl-key-p)
+					(if (= pause 0)
+					  (setf (sdl::frame-rate) 60)
+					  (setf (sdl::frame-rate) 5))
+					(if (= pause 0)
+						(setq pause 1)
+						(setq pause 0)))
+				(when (sdl:key= key :sdl-key-period)
+					(if (< (sdl:frame-rate) 60)
+						(incf (sdl:frame-rate))))
+				(when (sdl:key= key :sdl-key-comma)
+					(if (> (sdl:frame-rate) 1)
+						(decf (sdl:frame-rate))))
+					
+				(print (sdl:frame-rate))
+				(print key)
+				(format t "~C" #\linefeed))
 			(:quit-event () t)
 			(:idle ()
 				(main-loop)
-				(setf lifearray (next-life lifearray))
+				(if (= pause 0)
+				(setf lifearray (next-life lifearray)))
 					(loop for i from 0 to (1- (array-dimension lifearray 0)) do
 						(loop for j from 0 to (1- (array-dimension lifearray 1)) do
 							(if (= (aref lifearray i j) 0)
@@ -96,7 +114,6 @@
 									:color sdl:*green*)
 			 		  			(sdl:draw-box (sdl:rectangle :x (* i 5) :y (* j 5) :w 4 :h 4)
 									:color sdl:*red*))))
-			;	(main-loop)
 				(sdl:update-display))
 				(exit))
 		;(clean-up)
