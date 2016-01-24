@@ -1,10 +1,13 @@
 (ql:quickload :lispbuilder-sdl)
-(sb-int:with-float-traps-masked (:invalid :inexact :overflow)
 
 (defvar lifearray (make-array '(100 100)))
 (defvar pause 1)
 (defvar rate 5)
 (defvar size 25)
+(defvar sizex 0)
+(defvar sizey 0)
+(defvar width 0)
+(defvar height 0)
 (defvar indexx 0)
 (defvar indexy 0)
 
@@ -58,9 +61,10 @@
 
 (defun main-loop()
 	(when (sdl:mouse-left-p)
-		(if (= (aref lifearray (floor ( / (sdl:mouse-x) size)) (floor ( / (sdl:mouse-y) size))) 1)
-			(setf (aref lifearray (floor ( / (sdl:mouse-x) size)) (floor ( / (sdl:mouse-y) size))) 0)
-			(setf (aref lifearray (floor ( / (sdl:mouse-x) size)) (floor ( / (sdl:mouse-y) size))) 1)))
+	(if (array-in-bounds-p lifearray (+ (floor ( / (sdl:mouse-x) size)) indexx) (+ (floor ( / (sdl:mouse-y))) indexy ))
+	(if (= (aref lifearray (+ (floor ( / (sdl:mouse-x) size)) indexx) (+ (floor ( / (sdl:mouse-y) size)) indexy )) 1)
+			(setf (aref lifearray (+ (floor ( / (sdl:mouse-x) size)) indexx) (+ (floor ( / (sdl:mouse-y) size)) indexy )) 0)
+			(setf (aref lifearray (+ (floor ( / (sdl:mouse-x) size)) indexx) (+ (floor ( / (sdl:mouse-y) size)) indexy )) 1))))
 ;	  (print (floor ( / (sdl:mouse-x) 5.0))))
 	(when (sdl:mouse-wheel-down-p)
 	  (print "dw"))
@@ -72,7 +76,6 @@
 (defun test()
 	(sdl:with-init ()
 		(sdl:window 500 500
-			:resizable t
 			:double-buffer t
 			:title-caption "Tutorial 1"
 			:icon-caption "Tutorial 1")
@@ -127,9 +130,8 @@
 					(sdl:clear-display sdl:*black*))
 
 
-				(print size)
-				(print key)
-				(format t "~C" #\linefeed))
+				;(format t "~C" #\linefeed)
+				)
 			(:quit-event () t)
 			(:idle ()
 				(main-loop)
@@ -145,7 +147,33 @@
 									:color sdl:*red*))))
 				(sdl:update-display))
 				(exit))
-		;(clean-up)
 ))
-(test)
+
+(defun print_usage()
+	(print "test"))
+
+
+(defun create_cells_data(width height)
+	(if (< width sizex)
+  		(setf sizex width))
+	(if (< height sizey)
+		(setf sizey height))
+	(test))	
+
+(defun test_value(width height)
+  	(if (and (> width 2) (> height 2))
+	  		(create_cells_data width height)
+					(print_usage)))
+
+(defun test_num(width height)
+  	(setq width (parse-integer width :junk-allowed t))
+		(setq height (parse-integer height :junk-allowed t))
+			(if (and (numberp width) (numberp height))
+			  		(test_value width height)
+							(print_usage)))
+
+(sb-int:with-float-traps-masked (:invalid :inexact :overflow)
+	(if (/= (length *posix-argv*) 3)
+		(print_usage)
+		(test_num (elt *posix-argv* 1) (elt *posix-argv* 2)))
 (quit))
